@@ -1,1 +1,91 @@
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
 
+-- Variables de configuración
+local HubURL = "https://raw.githubusercontent.com/tuusuario/mi-script-universal/main/script.json"  -- URL de configuración del hub
+
+-- Cargar la configuración del hub desde un archivo JSON
+local function LoadHubConfig()
+    local success, response = pcall(function()
+        return game:GetService("HttpService"):GetAsync(HubURL)
+    end)
+
+    if success then
+        local data = HttpService:JSONDecode(response)
+        return data
+    else
+        warn("Error al cargar la configuración del hub.")
+        return nil
+    end
+end
+
+-- Crear la GUI para el hub
+local function CreateHubGui(player)
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "NewSkyHubGui"
+    gui.Parent = player:WaitForChild("PlayerGui")
+
+    -- Panel de fondo del Hub
+    local background = Instance.new("Frame")
+    background.Size = UDim2.new(0, 400, 0, 300)
+    background.Position = UDim2.new(0.5, -200, 0.5, -150)
+    background.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    background.BorderSizePixel = 0
+    background.Parent = gui
+
+    -- Título del Hub
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 50)
+    title.Position = UDim2.new(0, 0, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "NewSkyHub"
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.TextSize = 24
+    title.TextStrokeTransparency = 0.5
+    title.Parent = background
+
+    -- Botones de acción
+    local buttonList = {} -- Aquí guardaremos los botones generados
+
+    -- Cargar configuración del Hub
+    local config = LoadHubConfig()
+    if config then
+        local buttonYPosition = 60
+        for _, buttonConfig in ipairs(config.buttons or {}) do
+            local button = Instance.new("TextButton")
+            button.Size = UDim2.new(0, 200, 0, 50)
+            button.Position = UDim2.new(0.5, -100, 0, buttonYPosition)
+            button.Text = buttonConfig.text
+            button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            button.TextColor3 = Color3.fromRGB(255, 255, 255)
+            button.Parent = background
+
+            -- Acción del botón al hacer clic
+            button.MouseButton1Click:Connect(function()
+                print(player.Name .. " ha hecho clic en " .. buttonConfig.text)
+                -- Llamar a la acción configurada (puedes personalizar las acciones aquí)
+                if buttonConfig.action == "DoAction1" then
+                    -- Aquí puedes poner la acción que deseas ejecutar
+                    print("Acción 1 activada")
+                elseif buttonConfig.action == "DoAction2" then
+                    -- Otra acción
+                    print("Acción 2 activada")
+                end
+            end)
+
+            -- Añadir a la lista de botones
+            table.insert(buttonList, button)
+
+            -- Ajustar la posición de cada botón
+            buttonYPosition = buttonYPosition + 60
+        end
+    else
+        warn("No se pudo cargar la configuración del hub.")
+    end
+end
+
+-- Cuando un jugador se une, crear la GUI
+Players.PlayerAdded:Connect(function(player)
+    -- Crear la GUI del hub para el jugador
+    CreateHubGui(player)
+end)
